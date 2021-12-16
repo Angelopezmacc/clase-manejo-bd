@@ -1,0 +1,115 @@
+create or replace function func_calc_promedio() returns trigger
+language plpgsql
+as
+$$
+declare
+	creditos_curso int;
+	creditos_est int;
+	promedio_est real;
+	nuevo_promedio real;
+begin
+	select cur.creditos into creditos_curso
+	from curso cur join grupo gru on (cur.id = gru.id_curso)
+	where gru.id = new.id_grupo;
+
+	select sum(cur.creditos) into creditos_est
+	from curso cur join grupo gru on (cur.id = gru.id_curso)
+	               join inscripcion ins on (gru.id = ins.id_grupo)
+	where ins.codigo_estudiante = new.codigo_estudiante and ins.id_grupo != new.id_grupo;
+
+	select promedio into promedio_est
+	from estudiante
+	where codigo = new.codigo_estudiante;
+
+	nuevo_promedio = ((promedio_est * creditos_est)+(creditos_curso * new.calificacion))/(creditos_curso + creditos_est);
+
+	update estudiante
+	set promedio = nuevo_promedio
+	where codigo = new.codigo_estudiante;
+
+	return new;
+end;
+$$
+
+create trigger trigger_calc_promedio
+after insert on inscripcion
+for each row
+	execute procedure func_calc_promedio();
+
+update estudiante set promedio = 43.09 where codigo = 3
+
+insert into inscripcion values (19, 49, 3, 13)
+
+
+----------------------------------------------
+create or replace function func_act_promedio() returns trigger
+language plpgsql
+as
+$$
+declare
+	creditos_curso int;
+	creditos_est int;
+	promedio_est real;
+	nuevo_promedio real;
+	p1 real;
+begin
+	select cur.creditos into creditos_curso
+	from curso cur join grupo gru on (cur.id = gru.id_curso)
+	where gru.id = new.id_grupo;
+
+	select sum(cur.creditos) into creditos_est
+	from curso cur join grupo gru on (cur.id = gru.id_curso)
+	               join inscripcion ins on (gru.id = ins.id_grupo)
+	where ins.codigo_estudiante = new.codigo_estudiante;
+
+	select promedio into promedio_est
+	from estudiante
+	where codigo = new.codigo_estudiante;
+
+	p1 = (promedio_est * creditos_est) - (creditos_curso * old.calificacion);
+
+	nuevo_promedio = (p1 + (creditos_curso * new.calificacion)) / creditos_est;
+
+	update estudiante
+	set promedio = nuevo_promedio
+	where codigo = new.codigo_estudiante;
+
+	return new;
+end;
+$$
+
+create trigger trigger_act_promedio
+after update on inscripcion
+for each row
+	execute procedure func_act_promedio();
+
+update inscripcion
+set calificacion = 46
+where id = 19
+
+-----------------------------------------------------
+create or replace FUNCTION promedio_ponderado() returns trigger
+LANGUAGE plpgsql
+as
+$$
+declare
+	id_es integer;
+	prom real;
+begin
+	select sum(gru.calificacion*cur.creditos)/sum(cur.creditos) as p_ponderado into prom
+	from
+	curso cur join
+	(select ins.codigo_estudiante,
+	ins.calificacion,
+	gr.id_curso
+	from inscripcion ins join
+	grupo gr on(ins.id_grupo = gr.id)
+	where ins.calificacion != 0 and ins.codigo_estudiante = new.codigo_estudiante
+	order by ins.codigo_estudiante) gru on(gru.id_curso = cur.id)
+	group by gru.codigo_estudiante;
+
+	update estudiante set promedio = prom
+	where codigo = new.codigo_estudiante;
+	return new;
+end;
+$$;

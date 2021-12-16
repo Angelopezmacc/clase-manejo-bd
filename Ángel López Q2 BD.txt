@@ -1,0 +1,31 @@
+create or replace function func_aumenta_salario() returns trigger
+language plpgsql
+as
+$$
+declare
+	antiguo_salario int;
+	nuevo_salario int;
+
+begin
+	
+	
+	select ins.salary into antiguo_salario
+	from advisor ad join instructor ins on (new.i_id=ins.id) 
+	join student est on (new.s_id=est.id);
+
+	
+	nuevo_salario = (antiguo_salario * 0.02);
+	
+	update instructor
+	set salary = nuevo_salario
+	where id = new.i_id;
+
+	
+	return new;
+end;
+$$
+
+create trigger trigger_aumenta_salario
+after insert on advisor
+for each row
+	execute procedure func_aumenta_salario();

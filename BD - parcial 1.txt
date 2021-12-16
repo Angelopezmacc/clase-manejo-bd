@@ -1,0 +1,56 @@
+--Parcial 1 - Bases de datos
+--Ángel López
+
+--solución
+--1
+pi(project) nombre, apellido (sigma(select) fecha_nacimiento >'2003-02-18' (estudiante) ) 
+
+--2
+
+pi(project) nombre, apellido (profesor full outer join departemento (sigma(select id = 10 (departemento)) ))
+
+
+--3
+select est.nombre, est.apellido
+from public.estudiante est
+where est.fecha_nacimiento > '2003-02-18'
+
+--4
+select pro.nombre, pro.apellido
+from public.profesor pro join public.departamento dep on (pro.id_departamento = dep.id)
+where dep.id = 10
+
+--5
+select count (est.nombre) as total_estudiante_BD
+from public.estudiante est join public.inscripcion ins on (est.codigo = ins.codigo_estudiante) 
+join public.grupo gr on (ins.id_grupo = gr.id) join public.curso cur on (gr.id_curso = cur.id)
+where cur.nombre = 'Manejo de Bases de Datos' and gr.anio = 2021 and gr.periodo = 1
+
+--6 
+select cur.nombre, cur.creditos
+from public.departamento dep join public.curso cur on (dep.id = cur.id_departamento)  
+join public.grupo gr on (cur.id = gr.id_curso)
+join public.horario hor on (hor.id_grupo = gr.id)
+where dep.nombre = 'MACC' and hor.dia != 4  
+
+--7
+select hor.dia, hor.hora_inicio, hor.hora_fin
+from public.curso cur join public.grupo gr on (cur.id = gr.id_curso) 
+join public.horario hor on (cur.id = hor.id_grupo)
+where cur.nombre = 'Manejo de Bases de Datos' and gr.anio = 2021 and gr.periodo = 1
+
+--8 
+
+create view punto_8 as
+select cur.nombre as cur_nombre, gr.nombre as gr_nombre,
+hor.dia, hor.hora_inicio, hor.hora_fin, ed.nombre as edificio, sal.nombre as salon
+from public.departamento dep join public.curso cur on (dep.id = cur.id_departamento)  
+join public.grupo gr on (cur.id = gr.id_curso)
+join public.horario hor on (hor.id_grupo = gr.id)
+join public.salon sal on (sal.id = hor.id_salon)
+join public.edificio ed on (ed.id = sal.id_edificio)
+where dep.nombre = 'MACC'
+
+-- para ver la vista creada
+select * from punto_8
+

@@ -1,0 +1,58 @@
+-- Parcial 2 Bases de Datos
+--Ángel López
+-- Universidad del Rosario
+
+--Primer punto
+select count(ins.id)
+from inscripcion ins
+where ins.calificacion >= 30
+union all
+select count(ins.id)
+from inscripcion ins
+where ins.calificacion < 30
+
+
+--Segundo punto
+
+select nombre_profe, apellido_profe
+from (
+		select pro.nombre as nombre_profe , pro.apellido as apellido_profe, gru.id_profesor as prof_id
+		from departamento dep join profesor pro on (dep.id = pro.id_departamento)
+		left join grupo gru on (pro.id = gru.id_profesor)
+		where dep.nombre = 'MACC'
+		) as no_cursos
+
+where prof_id is null
+
+
+--Tercer punto
+
+--se crea la columna creditos en la tabla estudiantes con valor por defecto 0
+alter table estudiante add creditos int default 0
+
+--función
+create or replace function func_calc_creditos() returns trigger
+language plpgsql
+as
+$$
+declare
+	estudiante_creditos int;
+begin
+	select sum(cur.creditos) into estudiante_creditos
+	from curso cur join grupo gru on (cur.id = gru.id_curso)
+	               join inscripcion ins on (gru.id = ins.id_grupo)  
+	where ins.codigo_estudiante = new.codigo_estudiante;
+	
+	update estudiante
+	set creditos = estudiante_creditos
+	where codigo = new.codigo_estudiante;
+
+	return new;
+end;
+$$
+
+--disparador
+create trigger trigger_calc_creditos
+after insert on inscripcion
+for each row
+	execute procedure func_calc_creditos();

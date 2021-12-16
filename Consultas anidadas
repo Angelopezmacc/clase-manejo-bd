@@ -1,0 +1,53 @@
+--Profesores de MACC y Economia con conjuntos
+select pro.nombre, pro.apellido, dep.nombre
+from profesor pro join departamento dep on (pro.id_departamento = dep.id)
+where dep.nombre = 'MACC'
+union
+select pro.nombre, pro.apellido, dep.nombre
+from profesor pro join departamento dep on (pro.id_departamento = dep.id)
+where dep.nombre = 'Economía'
+
+--Facultades sin departamentos
+select nom_facultad
+from 
+	(	
+		select fac.nombre as nom_facultad, dep.nombre as nom_departamento
+		from facultad fac left join departamento dep on (fac.id = dep.id_facultad)
+	 ) as departamentos
+where nom_departamento is null
+
+--Estudiantes con calificacion superior al promedio
+select est.nombre, est.apellido, cur.nombre, gru.nombre, ins.calificacion
+from estudiante est join inscripcion ins on (est.codigo = ins.codigo_estudiante)
+join grupo gru on (gru.id = ins.id_grupo)
+join curso cur on (cur.id = gru.id_curso)
+where ins.calificacion >
+(
+	select round(avg(calificacion),2)
+	from inscripcion
+	where calificacion > 0
+)
+
+--Profesores de MACC que nunca han dictado BD
+select nom_profesor, ape_profesor
+from
+	(
+		select distinct nom_profesor, ape_profesor, nom_curso 
+		from 
+			(
+				select pro.id as id_profesor, pro.nombre as nom_profesor, pro.apellido as ape_profesor
+				from departamento dep join profesor pro on (dep.id = pro.id_departamento)
+				where dep.nombre = 'MACC'
+			) as profesores
+			left join 
+			(
+				select cur.nombre as nom_curso, gru.nombre as nom_grupo, gru.id_profesor as id_profesor_grupo
+				from grupo gru join curso cur on (cur.id = gru.id_curso)
+				where cur.nombre = 'Manejo de Bases de Datos'
+			) as grupos
+			on (profesores.id_profesor = grupos.id_profesor_grupo)
+	) as profesores_BD
+where nom_curso is null
+
+
+

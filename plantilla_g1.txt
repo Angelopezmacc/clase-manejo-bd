@@ -1,0 +1,27 @@
+--Primer punto
+
+--su codigo aqui
+
+--Segundo punto
+
+--su codigo aqui
+
+--Tercer punto
+
+alter table --su codigo aqui
+
+create or replace function func_calc_creditos() returns trigger
+language plpgsql
+as
+$$
+declare
+	--su codigo aqui
+begin
+	--su codigo aqui
+
+	return new;
+end;
+$$
+
+create trigger --su codigo aqui
+

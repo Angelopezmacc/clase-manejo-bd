@@ -1,0 +1,38 @@
+Quiz 1 bases de datos
+
+a)
+create table "Factura" (
+	numero integer not null,
+	fecha date not null,
+
+	primary key (numero)
+)
+
+create table "Detalle_Factura" (
+	numero_Factura integer not null,
+	codigo_Producto integer not null,
+	numero_detalle integer not null,
+	unidades_detalle integer not null,
+	precio_detalle real not null,
+
+	primary key (numero_Factura,numero_detalle),
+	foreign key (numero_Factura) references "Factura" (numero),
+	foreign key (codigo_Producto) references "Producto" (codigo)
+)
+
+b)
+insert into "Producto" values (12030,"leche",20000,50)
+insert into "Producto" values (120349,"pan",2000,100)
+
+c)
+select avg(existencias)
+where avg>0
+
+d)
+select numero, fecha from "Factura"
+where fecha > 2019/01/01 and < 2019/01/31
+
+
+e)
+select codigo,descripcion,precio_unitario,existencias from "Producto"
+where precio_unitario > 10000
